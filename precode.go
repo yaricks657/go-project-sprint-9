@@ -32,6 +32,8 @@ func Worker(in <-chan int64, out chan<- int64) {
 	defer close(out)
 
 	for v := range in {
+		// Добавил тут задержку, но не очень понял зачем
+		time.Sleep(100 * time.Millisecond)
 		out <- v
 	}
 }
@@ -46,11 +48,14 @@ func main() {
 	// для проверки будем считать количество и сумму отправленных чисел
 	var inputSum int64   // сумма сгенерированных чисел
 	var inputCount int64 // количество сгенерированных чисел
+	var mu sync.Mutex
 
 	// генерируем числа, считая параллельно их количество и сумму
 	go Generator(ctx, chIn, func(i int64) {
+		mu.Lock()
 		inputSum += i
 		inputCount++
+		mu.Unlock()
 	})
 
 	const NumOut = 5 // количество обрабатывающих горутин и каналов
@@ -70,8 +75,8 @@ func main() {
 	var wg sync.WaitGroup
 
 	// Собираем числа из каналов outs
+	wg.Add(len(outs))
 	for i := 0; i < NumOut; i++ {
-		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
 			for v := range outs[i] {
