@@ -32,9 +32,9 @@ func Worker(in <-chan int64, out chan<- int64) {
 	defer close(out)
 
 	for v := range in {
-		// Добавил тут задержку, но не очень понял зачем
-		time.Sleep(100 * time.Millisecond)
 		out <- v
+		// пауза на 1 млсекунду
+		time.Sleep(1 * time.Millisecond)
 	}
 }
 
